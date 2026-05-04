@@ -727,23 +727,39 @@ footer {
 </footer>
 
 <script>
-// Waitlist form handler
+// Waitlist form handler — powered by Formspree
 function handleSubmit(e, formId) {
   e.preventDefault();
   const email = document.getElementById(formId + '-email').value;
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
 
-  // Store email (in real deployment, send to your backend/Mailchimp)
-  console.log('Waitlist signup:', email);
-
-  // Show success message
-  document.querySelector('#' + formId + (formId === 'hero' ? '' : '') + '-success' ).style.display = 'block';
-  if(formId === 'hero') {
-    document.getElementById('hero-success').style.display = 'block';
-    document.querySelector('.waitlist-form').style.display = 'none';
-  } else {
-    document.getElementById('cta-success').style.display = 'block';
-    document.querySelector('.cta-form').style.display = 'none';
-  }
+  fetch('https://formspree.io/f/mjglypjy', {
+    method: 'POST',
+    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email, form: formId })
+  })
+  .then(res => {
+    if (res.ok) {
+      if (formId === 'hero') {
+        document.getElementById('hero-success').style.display = 'block';
+        document.querySelector('.waitlist-form').style.display = 'none';
+      } else {
+        document.getElementById('cta-success').style.display = 'block';
+        document.querySelector('.cta-form').style.display = 'none';
+      }
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Try again →';
+      alert('Something went wrong. Please try again.');
+    }
+  })
+  .catch(() => {
+    btn.disabled = false;
+    btn.textContent = 'Try again →';
+    alert('Network error. Please check your connection and try again.');
+  });
 }
 
 // Fix success message IDs
